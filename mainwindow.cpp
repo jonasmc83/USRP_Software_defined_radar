@@ -1323,3 +1323,12 @@ void MainWindow::on_checkBox_toggled(bool checked)
     }
 }
 
+void MainWindow::on_numPulses2_editingFinished()
+{
+    //ui->numPulses->setText(QString::number(std::pow(2, ui->numPulses2->value())));
+}
+
+void MainWindow::on_numPulses2_valueChanged(int arg1)
+{
+    ui->numPulses->setText(QString::number(std::pow(2, arg1)));
+}

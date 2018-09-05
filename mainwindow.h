@@ -163,6 +163,9 @@ private slots:
 
     void on_checkBox_toggled(bool checked);
 
+    void on_numPulses2_editingFinished();
+
+    void on_numPulses2_valueChanged(int arg1);
 private:
     boost::thread_group pulse_doppler_thread,camera_thread;
     bool firstPlot, m_enable_camera;
