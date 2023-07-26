@@ -22,16 +22,17 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT += core gui
+CONFIG += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = USRP_Pulse_Doppler_Radar
 TEMPLATE = app
 
-
-SOURCES += main.cpp\
-        mainwindow.cpp \
+SOURCES += \
+    main.cpp \
+    mainwindow.cpp \
     plot.cpp \
     processing.cpp \
     simulatedtarget.cpp \
@@ -41,7 +42,8 @@ SOURCES += main.cpp\
     cameradialog.cpp \
     waveform.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS += \
+    mainwindow.h \
     plot.h \
     processing.h \
     simulatedtarget.h \
@@ -54,61 +56,66 @@ HEADERS  += mainwindow.h \
     cameradialog.h \
     waveform.h
 
-FORMS    += mainwindow.ui \
+FORMS += \
+    mainwindow.ui \
     ppidialog.ui \
     cameradialog.ui
 
-LIBS += -lqwt -L/usr/local/lib -luhd -lboost_filesystem -lboost_system -lboost_thread -lboost_chrono -lgomp -lopencv_core -lopencv_highgui -lopencv_video -lopencv_imgproc
-
-INCLUDEPATH = /usr/local/include
-
-DEFINES += QWT_DLL
-
+#========== Libraries ==========#
+# QWT
 CONFIG += qwt
+DEFINES += QWT_DLL
+LIBS += -lqwt-qt5
+INCLUDEPATH += /usr/include/qwt
 
-QMAKE_CXXFLAGS += -std=c++11 -fopenmp -Wno-sign-compare
+# UHD
+LIBS += -luhd -lboost_filesystem -lboost_system -lboost_thread -lboost_chrono
 
-OTHER_FILES += \
-    processing_gpu.cu \
-    processing_gpu_double.cu
+# OpenCV
+INCLUDEPATH += /usr/include/opencv4
+OPENCV_DIR = /usr/lib/x86_64-linux-gnu
+LIBS += -L$$OPENCV_DIR -lopencv_core -lopencv_highgui -lopencv_videoio -lopencv_imgproc
 
-# CUDA Specific stuff
-#QMAKE_CC = nvcc
-#QMAKE_CXX = nvcc
+# OpenMP
+#LIBS += -lgomp
+QMAKE_CXXFLAGS += -fopenmp
+QMAKE_LFLAGS += -fopenmp
 
-CUDA_SOURCES += processing_gpu.cu processing_gpu_double.cu
-CUDA_DIR = /usr/local/cuda-8.0            # Path to cuda toolkit install
-CUDA_OBJECTS_DIR = .
-SYSTEM_NAME = x86_64         # Depending on your system either 'Win32', 'x64', or 'Win64'
-SYSTEM_TYPE = 64            # '32' or '64', depending on your system
-CUDA_ARCH = sm_30           # Type of CUDA architecture, for example 'compute_10', 'compute_11', 'sm_10'
+# KissFFT
+INCLUDEPATH += /usr/include/kissfft
+
+#========== CUDA ==========#
+#CUDA_DIR = /usr/local/cuda-8.0  # Path to cuda toolkit install
+!isEmpty(CUDA_DIR): {
+    INCLUDEPATH += $$CUDA_DIR/include
+    QMAKE_LIBDIR += $$CUDA_DIR/lib64
+    NVCC_PATH = $$CUDA_DIR/bin/nvcc
+} else { # System path
+    NVCC_PATH = nvcc
+}
+
+# Build options
+CUDA_OBJECTS_DIR = $$OUT_PWD/cuda
+CUDA_ARCH = sm_52 # Type of CUDA architecture
 NVCC_OPTIONS = --use_fast_math
 
-# include paths
-INCLUDEPATH += $$CUDA_DIR/include
-
-# library directories
-QMAKE_LIBDIR += $$CUDA_DIR/lib64
-# Add the necessary libraries
+# CUDA libraries
 LIBS += -lcuda -lcudart -lcufft
 
 # The following makes sure all path names (which often include spaces) are put between quotation marks
 CUDA_INC = $$join(INCLUDEPATH,'" -I"','-I"','"')
 
+# Adding CUDA sources
+CUDA_SOURCES += \
+    processing_gpu.cu \
+    processing_gpu_double.cu
+
+OTHER_FILES += $$CUDA_SOURCES
+
 # Configuration of the Cuda compiler
-CONFIG(debug, debug|release) {
-    # Debug mode
-    cuda_d.input = CUDA_SOURCES
-    cuda_d.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
-    cuda_d.commands = $$CUDA_DIR/bin/nvcc -D_DEBUG $$NVCC_OPTIONS $$CUDA_INC $$LIBS --machine $$SYSTEM_TYPE -arch=$$CUDA_ARCH -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
-    cuda_d.dependency_type = TYPE_C
-    QMAKE_EXTRA_COMPILERS += cuda_d
-}
-else {
-    # Release mode
-    cuda.input = CUDA_SOURCES
-    cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
-    cuda.commands = $$CUDA_DIR/bin/nvcc $$NVCC_OPTIONS $$CUDA_INC $$LIBS --machine $$SYSTEM_TYPE -arch=$$CUDA_ARCH -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
-    cuda.dependency_type = TYPE_C
-    QMAKE_EXTRA_COMPILERS += cuda
-}
+cuda.input = CUDA_SOURCES
+cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
+cuda.commands = $$NVCC_PATH $$NVCC_OPTIONS $$CUDA_INC $$LIBS -m64 -arch=$$CUDA_ARCH -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+CONFIG(debug, debug|release): cuda.commands += -D_DEBUG
+cuda.dependency_type = TYPE_C
+QMAKE_EXTRA_COMPILERS += cuda

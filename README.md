@@ -22,3 +22,12 @@ For more information on the USRP based radar, see conference article [USRP based
 
 
 Jonas Myhre Christiansen <jonas-myhre.christiansen@ffi.no>
+
+## Build in Ubuntu 20.04
+
+* Install dependencies:
+<pre>
+sudo apt install nvidia-cuda-toolkit libqwt-qt5-dev libomp-dev libopencv-dev libkissfft-dev libuhd-dev
+</pre>
+
+* Open USRP_Pulse_Doppler_Radar.pro in QtCreator and build!

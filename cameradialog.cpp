@@ -73,7 +73,7 @@ void cameraDialog::paintEvent(QPaintEvent* e) {
 QImage cameraDialog::Mat2QImage(cv::Mat &src)
 {
     cv::Mat temp(src.cols,src.rows,src.type());
-    cvtColor(src, temp,CV_BGR2RGB);
+    cvtColor(src, temp, cv::COLOR_BGR2RGB);
     QImage dest= QImage((uchar*) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
 
     return dest;
@@ -110,7 +110,7 @@ void cameraDialog::start_video_writer(const std::string fname) {
         return;
     }
 
-    int codec = CV_FOURCC('M', 'J', 'P', 'G');
+    int codec = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
     cv::Size sz = cv::Size(1920,1080);
 
     std::cout << "Opening video file for writing: " << fname << std::endl;
