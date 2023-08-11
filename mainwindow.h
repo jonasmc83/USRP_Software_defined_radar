@@ -166,6 +166,8 @@ private slots:
     void on_numPulses2_editingFinished();
 
     void on_numPulses2_valueChanged(int arg1);
+    void on_actionConfig_triggered(bool checked);
+
 private:
     boost::thread_group pulse_doppler_thread,camera_thread;
     bool firstPlot, m_enable_camera;

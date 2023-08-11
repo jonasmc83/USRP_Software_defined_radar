@@ -1332,3 +1332,9 @@ void MainWindow::on_numPulses2_valueChanged(int arg1)
 {
     ui->numPulses->setText(QString::number(std::pow(2, arg1)));
 }
+
+void MainWindow::on_actionConfig_triggered(bool checked)
+{
+    checked ? ui->frConfig->show() : ui->frConfig->hide();
+}
+
